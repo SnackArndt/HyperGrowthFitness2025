@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HyperGrowth Fitness Challenge 2025</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #171836;
+            color: white;
+        }
+        .modal {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .modal.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .dropdown-container {
+            position: relative;
+        }
+        .dropdown-list {
+            position: absolute;
+            background-color: #171836;
+            border: 1px solid #2e305e;
+            border-top: none;
+            max-height: 200px;
+            overflow-y: auto;
+            width: 100%;
+            z-index: 10;
+            border-radius: 0 0 0.5rem 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+        .dropdown-list-item {
+            padding: 0.75rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .dropdown-list-item:hover {
+            background-color: #2e305e;
+        }
+        .dropdown-list-item.active {
+            background-color: #2e305e;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-4xl bg-white rounded-xl shadow-2xl p-6 md:p-10 border border-gray-200 space-y-8" style="background-color: #171836; border-color: #2e305e;">
+        <!-- Header Section -->
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between space-y-4 md:space-y-0 md:space-x-4">
+            <div class="flex items-center space-x-2">
+                <span class="text-xl font-bold" style="color: white;">Togal.<span style="color: #65b35a;">ai</span></span>
+            </div>
+            <div class="text-right">
+                <h1 class="text-4xl md:text-5xl font-extrabold" style="color: white;">HyperGrowth</h1>
+                <h1 class="text-4xl md:text-5xl font-extrabold" style="color: #65b35a;">Fitness Challenge 2025</h1>
+            </div>
+        </div>
+
+        <!-- Countdown Timer -->
+        <div class="text-white rounded-lg py-2 px-4 text-center shadow-lg transform transition duration-300 hover:scale-105" style="background-color: #65b35a;">
+            <div class="text-base font-semibold">Competition Ends In:</div>
+            <div id="countdown" class="text-2xl font-bold tracking-wide mt-1"></div>
+        </div>
+
+        <!-- Leaderboards Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Deadlift Leaderboard -->
+            <div class="rounded-xl shadow-lg p-6 space-y-4 border border-blue-200" style="background-color: #171836; border-color: #2e305e;">
+                <h2 class="text-2xl font-bold text-center" style="color: white;">Deadlift Leaderboard<br>(Weight)</h2>
+                <div id="deadlift-leaderboard" class="space-y-2 text-white">
+                    <div class="flex justify-between items-center font-medium border-b-2 pb-1 border-dotted border-gray-500">
+                        <span style="color: #65b35a;">Name</span>
+                        <span style="color: #65b35a;">Weight</span>
+                    </div>
+                    <!-- Leaderboard items will be injected here -->
+                </div>
+            </div>
+
+            <!-- 5k Leaderboard -->
+            <div class="rounded-xl shadow-lg p-6 space-y-4 border border-blue-200" style="background-color: #171836; border-color: #2e305e;">
+                <h2 class="text-2xl font-bold text-center" style="color: white;">5k Leaderboard<br>(Time)</h2>
+                <div id="5k-leaderboard" class="space-y-2 text-white">
+                    <div class="flex justify-between items-center font-medium border-b-2 pb-1 border-dotted border-gray-500">
+                        <span style="color: #65b35a;">Name</span>
+                        <span style="color: #65b35a;">Time</span>
+                    </div>
+                    <!-- Leaderboard items will be injected here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- User Input Form -->
+        <div class="rounded-xl shadow-lg p-6 space-y-4 border border-gray-200" style="background-color: #171836; border-color: #2e305e;">
+            <h2 class="text-2xl font-bold text-center" style="color: white;">Submit Your Results</h2>
+            <form id="results-form" class="space-y-4">
+                <!-- User Selection Dropdown -->
+                <div class="dropdown-container">
+                    <label for="user-input" class="block text-sm font-medium mb-1" style="color: white;">Select Team Member</label>
+                    <input type="text" id="user-input" placeholder="Search or select a name" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500" style="color: black;" autocomplete="off">
+                    <input type="hidden" id="selected-user-id" required>
+                    <div id="user-dropdown" class="dropdown-list hidden"></div>
+                </div>
+                
+                <div>
+                    <label for="fivetime" class="block text-sm font-medium mb-1" style="color: white;">5k Time (MM:SS)</label>
+                    <input type="text" id="fivetime" placeholder="e.g., 25:30" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500" required style="color: black;" pattern="^\d{1,2}:\d{2}$">
+                </div>
+                <div>
+                    <label for="deadlift" class="block text-sm font-medium mb-1" style="color: white;">Deadlift Weight (kg)</label>
+                    <input type="number" id="deadlift" placeholder="e.g., 120" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500" required style="color: black;">
+                </div>
+                <button type="submit" class="w-full text-white font-bold py-3 rounded-lg shadow-md hover:opacity-90 transition duration-300" style="background-color: #65b35a;">Update My Results</button>
+            </form>
+            <button id="ai-coach-btn" class="w-full text-white font-bold py-3 rounded-lg shadow-md hover:opacity-90 transition duration-300 hidden" style="background-color: #65b35a;">
+                ✨ Get AI Coach Advice ✨
+            </button>
+        </div>
+        
+        <!-- Graphs Section -->
+        <div class="flex flex-col gap-8">
+            <div class="rounded-xl shadow-lg p-6 border border-gray-200" style="background-color: #171836; border-color: #2e305e;">
+                <h2 class="text-2xl font-bold text-center mb-4" style="color: white;">Deadlift Progress</h2>
+                <canvas id="deadliftChart"></canvas>
+            </div>
+            <div class="rounded-xl shadow-lg p-6 border border-gray-200" style="background-color: #171836; border-color: #2e305e;">
+                <h2 class="text-2xl font-bold text-center mb-4" style="color: white;">5k Time Progress</h2>
+                <canvas id="fivetimeChart"></canvas>
+            </div>
+        </div>
+
+        <!-- User ID & Share Button -->
+        <div class="flex flex-col md:flex-row items-center justify-between p-4 rounded-lg border border-gray-200 shadow-inner" style="background-color: #171836; border-color: #65b35a;">
+            <div class="text-sm mb-2 md:mb-0" style="color: white;">
+                Your User ID: <span id="user-id" class="font-mono break-all" style="color: #65b35a;"></span>
+            </div>
+            <button id="copy-btn" class="text-sm font-medium py-2 px-4 rounded-lg hover:opacity-90 transition duration-200" style="background-color: #65b35a; color: white;">
+                Copy Link
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal for messages -->
+    <div id="message-modal" class="modal fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white p-6 rounded-lg shadow-xl text-center max-w-sm w-full space-y-4" style="background-color: #171836;">
+            <p id="modal-text" class="text-lg font-semibold" style="color: white;"></p>
+            <button id="modal-close-btn" class="mt-4 text-white py-2 px-6 rounded-lg hover:opacity-90 transition duration-300" style="background-color: #65b35a;">OK</button>
+        </div>
+    </div>
+    
+    <!-- Gemini API Modal -->
+    <div id="gemini-modal" class="modal fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white p-6 rounded-lg shadow-xl text-center max-w-lg w-full space-y-4" style="background-color: #171836;">
+            <h3 class="text-xl font-bold" style="color: white;">Your AI Coach says:</h3>
+            <p id="gemini-response" class="text-sm text-gray-300 text-left"></p>
+            <button id="gemini-close-btn" class="mt-4 text-white py-2 px-6 rounded-lg hover:opacity-90 transition duration-300" style="background-color: #65b35a;">Close</button>
+        </div>
+    </div>
+
+    <!-- Firebase Scripts -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, query, where, writeBatch, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Set Firebase logging level to debug
+        setLogLevel('Debug');
+
+        // --- Firebase Initialization and Auth ---
+        // Global variables are provided by the Canvas environment. Use 'default' values if they're not defined.
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        
+        // Modal functions
+        const messageModal = document.getElementById('message-modal');
+        const modalText = document.getElementById('modal-text');
+        const modalCloseBtn = document.getElementById('modal-close-btn');
+
+        function showModal(message) {
+            modalText.textContent = message;
+            messageModal.classList.remove('hidden');
+        }
+
+        modalCloseBtn.onclick = () => {
+            messageModal.classList.add('hidden');
+        };
+
+        const userColors = {};
+        const getUserColor = (userId) => {
+            if (!userColors[userId]) {
+                const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+                userColors[userId] = randomColor;
+            }
+            return userColors[userId];
+        };
+        
+        const placeholderUsers = [
+            "Abrar Hussain", "Alexandre Brito", "Anastasiia Dmytriieva", "Anthony Scott", "Baeleigh", "Brandon Myles",
+            "Brian Baldwin", "Casey Bruce", "Chady", "Chip Pettibone", "Cillian O'Mongain", "Corey Harrison", "Daniel Borges",
+            "David", "Dawn Keller", "DC", "Desi", "Dylan Mains", "Dzmitry", "Elsa", "Frank", "Gijs", "Imed Jaberi",
+            "Isiah Kurz", "Jan", "Jennifer Nassar", "Jocelyne Norris", "Johnny Maghzal", "Jonas Galvez", "Karim Zaidi",
+            "Karlie LaCroix", "Kelsey Formost", "Khalil Alami", "Lufan Wang", "Magid Soueidy", "Marco Melnykovych",
+            "Martin Djonov", "Matthew Foley", "Mauro Gonzalez", "Max", "Michael Seni", "Michael Sheehan", "Mike Tortolani",
+            "Mykyta Kovalenko", "Nader Chaer", "Nick Braun", "Nick Meyer", "Nour", "Oleksandr", "Patrick England",
+            "Patrick Erin Murphy", "Patrick Hughes", "Paweł Puzio", "Piotr", "Rossana Portaluppi", "Ryan Harvey",
+            "Sam Dewey", "Sean Kirt", "Sian Griffiths", "Stefan", "Türerkan İnce", "Vera Habchi", "Yesenia Torres",
+            "Yuliia Bilan", "Yura Sydorchuk", "Yurii Makov", "Zack"
+        ];
+        
+        let allTeamMembers = [];
+        let userMap = {};
+
+        // --- User Selection Dropdown Logic ---
+        const userInput = document.getElementById('user-input');
+        const userDropdown = document.getElementById('user-dropdown');
+        const selectedUserIdInput = document.getElementById('selected-user-id');
+        const aiCoachBtn = document.getElementById('ai-coach-btn');
+
+        // Populate the dropdown list
+        const populateDropdown = (filter = '') => {
+            userDropdown.innerHTML = '';
+            const filteredNames = allTeamMembers.filter(member => 
+                member.name.toLowerCase().includes(filter.toLowerCase())
+            );
+            
+            if (filteredNames.length > 0) {
+                 userDropdown.style.display = 'block';
+                filteredNames.forEach(member => {
+                    const item = document.createElement('div');
+                    item.textContent = member.name;
+                    item.classList.add('dropdown-list-item');
+                    item.onclick = () => {
+                        userInput.value = member.name;
+                        selectedUserIdInput.value = member.id;
+                        userDropdown.style.display = 'none';
+                    };
+                    userDropdown.appendChild(item);
+                });
+            } else {
+                userDropdown.style.display = 'none';
+            }
+        };
+
+        // Event listeners for dropdown behavior
+        userInput.addEventListener('focus', () => {
+            populateDropdown('');
+        });
+        userInput.addEventListener('input', () => {
+            populateDropdown(userInput.value);
+        });
+        userInput.addEventListener('blur', (event) => {
+            // Delay hiding the dropdown to allow click events on the list items to register
+            setTimeout(() => {
+                if (!event.relatedTarget || !userDropdown.contains(event.relatedTarget)) {
+                    userDropdown.style.display = 'none';
+                }
+            }, 200);
+        });
+        
+        // --- Authenticate and Initialize App ---
+        let currentUserId = '';
+        if (initialAuthToken) {
+            signInWithCustomToken(auth, initialAuthToken).then((userCredential) => {
+                currentUserId = userCredential.user.uid;
+                document.getElementById('user-id').textContent = currentUserId;
+                initializeAppWithUser();
+            }).catch((error) => {
+                console.error("Error signing in with custom token:", error);
+                signInAnonymously(auth).then((userCredential) => {
+                    currentUserId = userCredential.user.uid;
+                    document.getElementById('user-id').textContent = currentUserId;
+                    initializeAppWithUser();
+                });
+            });
+        } else {
+            signInAnonymously(auth).then((userCredential) => {
+                currentUserId = userCredential.user.uid;
+                document.getElementById('user-id').textContent = currentUserId;
+                initializeAppWithUser();
+            });
+        }
+        
+        async function initializeAppWithUser() {
+            // Data will be stored in a 'public' collection so all authenticated users can see it.
+            const collectionPath = `/artifacts/${appId}/public/data/competition_users`;
+            const usersCollection = collection(db, collectionPath);
+            
+            // Graph data collections
+            const deadliftHistoryPath = `/artifacts/${appId}/public/data/deadlift_history`;
+            const fivetimeHistoryPath = `/artifacts/${appId}/public/data/fivetime_history`;
+            const deadliftHistoryCollection = collection(db, deadliftHistoryPath);
+            const fivetimeHistoryCollection = collection(db, fivetimeHistoryPath);
+
+            // Dynamically build a comprehensive user list and map
+            allTeamMembers = placeholderUsers.map(name => ({
+                name: name,
+                id: name.toLowerCase().replace(/\s/g, '').replace(/[^a-z0-9]/g, '')
+            }));
+            allTeamMembers.push({ name: "Oleksandr (OP)", id: "oleksandr" });
+            allTeamMembers.push({ name: `User-${currentUserId.substring(0, 4)}`, id: currentUserId });
+
+            allTeamMembers.forEach(member => {
+                userMap[member.name] = member.id;
+            });
+
+            // Add Oleksandr's initial results if not present
+            const oleksandrDocRef = doc(usersCollection, 'oleksandr');
+            const oleksandrDoc = await getDoc(oleksandrDocRef);
+            if (!oleksandrDoc.exists()) {
+                await setDoc(oleksandrDocRef, {
+                    name: "Oleksandr (OP)",
+                    fivetime: 23 * 60 + 41,
+                    deadlift: 70,
+                    date: new Date('2025-08-31')
+                });
+                await setDoc(doc(deadliftHistoryCollection), { date: new Date('2025-08-31'), userId: 'oleksandr', value: 70 });
+                await setDoc(doc(fivetimeHistoryCollection), { date: new Date('2025-08-31'), userId: 'oleksandr', value: 23 * 60 + 41 });
+            }
+
+            // --- Real-time data listener ---
+            onSnapshot(usersCollection, (snapshot) => {
+                const users = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    users.push({ id: doc.id, ...data });
+                });
+                renderLeaderboards(users);
+            }, (error) => {
+                console.error("Error fetching data:", error);
+                showModal("Error fetching real-time data. Check your connection.");
+            });
+
+            // --- Real-time graph data listeners ---
+            onSnapshot(deadliftHistoryCollection, (snapshot) => {
+                const history = [];
+                snapshot.forEach(doc => history.push(doc.data()));
+                renderDeadliftGraph(history);
+            }, (error) => {
+                console.error("Error fetching deadlift history:", error);
+            });
+
+            onSnapshot(fivetimeHistoryCollection, (snapshot) => {
+                const history = [];
+                snapshot.forEach(doc => history.push(doc.data()));
+                renderFivetimeGraph(history);
+            }, (error) => {
+                console.error("Error fetching 5k history:", error);
+            });
+
+
+            // --- Form Submission ---
+            document.getElementById('results-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const fivetimeInput = document.getElementById('fivetime').value;
+                const deadliftInput = parseFloat(document.getElementById('deadlift').value);
+                const [minutes, seconds] = fivetimeInput.split(':').map(Number);
+                const fivetimeSeconds = minutes * 60 + seconds;
+                const selectedName = userInput.value;
+                const selectedDocId = selectedUserIdInput.value;
+
+                if (!selectedDocId || isNaN(fivetimeSeconds) || isNaN(deadliftInput) || !fivetimeInput.match(/^\d{1,2}:\d{2}$/)) {
+                    showModal("Please select a team member and enter a valid time (MM:SS) and weight.");
+                    return;
+                }
+
+                try {
+                    const userDocRef = doc(db, collectionPath, selectedDocId);
+                    const userDoc = await getDoc(userDocRef);
+                    let shouldUpdate = false;
+                    
+                    const newData = {
+                        name: selectedName,
+                        date: new Date(),
+                    };
+
+                    if (!userDoc.exists()) {
+                        newData.fivetime = fivetimeSeconds;
+                        newData.deadlift = deadliftInput;
+                        shouldUpdate = true;
+                    } else {
+                        const existingData = userDoc.data();
+                        
+                        // Check for better 5k time (lower is better)
+                        if (fivetimeSeconds < existingData.fivetime) {
+                            newData.fivetime = fivetimeSeconds;
+                            shouldUpdate = true;
+                        } else {
+                            newData.fivetime = existingData.fivetime;
+                        }
+
+                        // Check for better deadlift weight (higher is better)
+                        if (deadliftInput > existingData.deadlift) {
+                            newData.deadlift = deadliftInput;
+                            shouldUpdate = true;
+                        } else {
+                            newData.deadlift = existingData.deadlift;
+                        }
+                    }
+
+                    if (shouldUpdate) {
+                        await setDoc(userDocRef, newData, { merge: true });
+                    }
+                    
+                    await setDoc(doc(deadliftHistoryCollection, `${selectedDocId}_${new Date().toISOString()}`), { date: new Date(), userId: selectedDocId, value: deadliftInput });
+                    await setDoc(doc(fivetimeHistoryCollection, `${selectedDocId}_${new Date().toISOString()}`), { date: new Date(), userId: selectedDocId, value: fivetimeSeconds });
+
+                    showModal("Your results have been successfully submitted!");
+                    aiCoachBtn.style.display = 'block';
+                } catch (error) {
+                    console.error("Error updating document:", error);
+                    showModal("Failed to submit results. Please try again.");
+                }
+            });
+
+            // --- Gemini API Integration ---
+            const geminiModal = document.getElementById('gemini-modal');
+            const geminiResponseText = document.getElementById('gemini-response');
+            const geminiCloseBtn = document.getElementById('gemini-close-btn');
+
+            geminiCloseBtn.onclick = () => {
+                geminiModal.classList.add('hidden');
+            };
+
+            aiCoachBtn.addEventListener('click', async () => {
+                const selectedDocId = selectedUserIdInput.value;
+                if (!selectedDocId) {
+                    showModal("Please submit a result first to get advice.");
+                    return;
+                }
+
+                const userDocRef = doc(db, collectionPath, selectedDocId);
+                const userDoc = await getDoc(userDocRef);
+                
+                if (!userDoc.exists() || !userDoc.data().fivetime || !userDoc.data().deadlift) {
+                    showModal("Please submit a complete result (5k time and deadlift) to get AI advice.");
+                    return;
+                }
+
+                const userData = userDoc.data();
+                const fivetimeSeconds = userData.fivetime;
+                const deadliftKg = userData.deadlift;
+                const deadliftLbs = (deadliftKg * 2.20462).toFixed(2);
+                const fivetimeMinutes = (fivetimeSeconds / 60).toFixed(2);
+
+                aiCoachBtn.textContent = 'Generating...';
+                aiCoachBtn.disabled = true;
+
+                const userQuery = `I have a 5k time of ${fivetimeMinutes} minutes and a deadlift of ${deadliftKg} kg. Provide a motivational and friendly fitness coach response. Include a specific tip for improving either my running or deadlift performance, and explain what these numbers say about my fitness. Keep it to a single paragraph.`;
+
+                try {
+                    const apiKey = "";
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                    
+                    const payload = {
+                        contents: [{ parts: [{ text: userQuery }] }],
+                        tools: [{ "google_search": {} }],
+                        systemInstruction: {
+                            parts: [{ text: "Act as a friendly, expert fitness coach. Your goal is to provide concise, encouraging, and helpful feedback based on fitness data. Do not make up numbers or statistics. Keep the tone conversational and positive." }]
+                        },
+                    };
+                    
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(`API Error: ${errorData.error.message}`);
+                    }
+                    
+                    const result = await response.json();
+                    const aiResponse = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (aiResponse) {
+                        geminiResponseText.textContent = aiResponse;
+                        geminiModal.classList.remove('hidden');
+                    } else {
+                        throw new Error("Invalid response from Gemini API.");
+                    }
+                } catch (error) {
+                    console.error("Error calling Gemini API:", error);
+                    showModal(`Failed to get AI coach advice: ${error.message}`);
+                } finally {
+                    aiCoachBtn.textContent = '✨ Get AI Coach Advice ✨';
+                    aiCoachBtn.disabled = false;
+                }
+            });
+        }
+        
+        // --- Countdown Timer Logic ---
+        function startCountdown() {
+            const countdownEl = document.getElementById('countdown');
+            const endTime = new Date('December 31, 2025 23:59:59').getTime();
+
+            const interval = setInterval(() => {
+                const now = new Date().getTime();
+                const timeLeft = endTime - now;
+
+                if (timeLeft < 0) {
+                    clearInterval(interval);
+                    countdownEl.textContent = "Competition is over!";
+                    return;
+                }
+                
+                // Calculate months, days, hours, minutes, and seconds
+                const totalSeconds = Math.floor(timeLeft / 1000);
+                const seconds = totalSeconds % 60;
+                const totalMinutes = Math.floor(totalSeconds / 60);
+                const minutes = totalMinutes % 60;
+                const totalHours = Math.floor(totalMinutes / 60);
+                const hours = totalHours % 24;
+                const totalDays = Math.floor(totalHours / 24);
+                const days = totalDays % 30.44; // Approximation for average month length
+                const months = Math.floor(totalDays / 30.44);
+
+                countdownEl.textContent = `${months}m ${Math.floor(days)}d ${hours}h ${minutes}m ${seconds}s`;
+            }, 1000);
+        }
+        
+        // --- Leaderboard Rendering ---
+        function renderLeaderboards(users) {
+            // Sort users for 5k leaderboard (lowest time first) and slice to top 10
+            const fivetimeLeaderboard = users.filter(u => u.fivetime !== null).sort((a, b) => a.fivetime - b.fivetime);
+            const fivetimeContainer = document.getElementById('5k-leaderboard');
+            fivetimeContainer.innerHTML = `
+                <div class="flex justify-between items-center font-medium border-b-2 pb-1 border-dotted border-gray-500">
+                    <span style="color: #65b35a;">Name</span>
+                    <span style="color: #65b35a;">Time</span>
+                </div>
+            `;
+            fivetimeLeaderboard.slice(0, 10).forEach((user, index) => {
+                const minutes = Math.floor(user.fivetime / 60);
+                const seconds = Math.round(user.fivetime % 60).toString().padStart(2, '0');
+                let dateString = "N/A";
+                if (user.date && user.date.toDate) {
+                    const submissionDate = user.date.toDate();
+                    dateString = `${submissionDate.getMonth() + 1}/${submissionDate.getDate()}`;
+                }
+
+                fivetimeContainer.innerHTML += `
+                    <div class="flex justify-between items-center py-2 px-3 rounded-md transition duration-200 ${user.id === currentUserId ? 'bg-blue-800 font-bold shadow-md' : 'hover:bg-gray-800'}">
+                        <span class="text-white">${index + 1}. ${user.name} ${dateString}</span>
+                        <span class="font-semibold" style="color: #65b35a;">${minutes}:${seconds}</span>
+                    </div>
+                `;
+            });
+
+            // Add placeholder rows for 5k
+            const fivetimeEmptyRows = Math.max(0, 5 - fivetimeLeaderboard.length);
+            for (let i = 0; i < fivetimeEmptyRows; i++) {
+                fivetimeContainer.innerHTML += `
+                    <div class="flex justify-between items-center py-2 px-3 rounded-md transition duration-200 hover:bg-gray-800">
+                        <span class="text-gray-500">${fivetimeLeaderboard.length + i + 1}.</span>
+                        <span>-</span>
+                    </div>
+                `;
+            }
+
+            // Sort users for deadlift leaderboard (highest weight first) and slice to top 10
+            const deadliftLeaderboard = users.filter(u => u.deadlift !== null).sort((a, b) => b.deadlift - a.deadlift);
+            const deadliftContainer = document.getElementById('deadlift-leaderboard');
+            deadliftContainer.innerHTML = `
+                <div class="flex justify-between items-center font-medium border-b-2 pb-1 border-dotted border-gray-500">
+                    <span style="color: #65b35a;">Name</span>
+                    <span style="color: #65b35a;">Weight</span>
+                </div>
+            `;
+            deadliftLeaderboard.slice(0, 10).forEach((user, index) => {
+                let dateString = "N/A";
+                if (user.date && user.date.toDate) {
+                    const submissionDate = user.date.toDate();
+                    dateString = `${submissionDate.getMonth() + 1}/${submissionDate.getDate()}`;
+                }
+                deadliftContainer.innerHTML += `
+                    <div class="flex justify-between items-center py-2 px-3 rounded-md transition duration-200 ${user.id === currentUserId ? 'bg-blue-800 font-bold shadow-md' : 'hover:bg-gray-800'}">
+                        <span class="text-white">${index + 1}. ${user.name} ${dateString}</span>
+                        <span class="font-semibold" style="color: #65b35a;">${user.deadlift} kg</span>
+                    </div>
+                `;
+            });
+
+            // Add placeholder rows for deadlift
+            const deadliftEmptyRows = Math.max(0, 5 - deadliftLeaderboard.length);
+            for (let i = 0; i < deadliftEmptyRows; i++) {
+                deadliftContainer.innerHTML += `
+                    <div class="flex justify-between items-center py-2 px-3 rounded-md transition duration-200 hover:bg-gray-800">
+                        <span class="text-gray-500">${deadliftLeaderboard.length + i + 1}.</span>
+                        <span>-</span>
+                    </div>
+                `;
+            }
+        }
+        
+        // --- Chart.js Graph Rendering ---
+        const deadliftCtx = document.getElementById('deadliftChart').getContext('2d');
+        const fivetimeCtx = document.getElementById('fivetimeChart').getContext('2d');
+        let deadliftChart, fivetimeChart;
+        
+        function renderDeadliftGraph(history) {
+            const sortedData = history.filter(d => d.value !== null).sort((a, b) => a.date.seconds - b.date.seconds);
+            const dataByUserId = sortedData.reduce((acc, current) => {
+                if (!acc[current.userId]) {
+                    acc[current.userId] = [];
+                }
+                acc[current.userId].push(current);
+                return acc;
+            }, {});
+
+            const datasets = Object.keys(dataByUserId).map(userId => {
+                const userData = dataByUserId[userId];
+                const data = userData.map(d => ({ x: new Date(d.date.seconds * 1000), y: d.value }));
+                return {
+                    label: `User ${userId.substring(0, 4)}`,
+                    data: data,
+                    borderColor: getUserColor(userId),
+                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'white',
+                    tension: 0.4
+                };
+            });
+
+            if (deadliftChart) deadliftChart.destroy();
+            deadliftChart = new Chart(deadliftCtx, {
+                type: 'line',
+                data: {
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Weight (kg)',
+                                color: 'white'
+                            },
+                            ticks: {
+                                color: 'white',
+                                stepSize: 5,
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.2)'
+                            }
+                        },
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'week',
+                                displayFormats: {
+                                    week: 'M/d'
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Date',
+                                color: 'white'
+                            },
+                            min: new Date('2025-08-31').getTime(),
+                            max: new Date('2025-12-31').getTime(),
+                            ticks: {
+                                color: 'white'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.2)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderFivetimeGraph(history) {
+            const sortedData = history.filter(d => d.value !== null).sort((a, b) => a.date.seconds - b.date.seconds);
+            const dataByUserId = sortedData.reduce((acc, current) => {
+                if (!acc[current.userId]) {
+                    acc[current.userId] = [];
+                }
+                acc[current.userId].push(current);
+                return acc;
+            }, {});
+
+            const datasets = Object.keys(dataByUserId).map(userId => {
+                const userData = dataByUserId[userId];
+                const data = userData.map(d => ({ x: new Date(d.date.seconds * 1000), y: d.value / 60 }));
+                return {
+                    label: `User ${userId.substring(0, 4)}`,
+                    data: data,
+                    borderColor: getUserColor(userId),
+                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'white',
+                    tension: 0.4
+                };
+            });
+
+            if (fivetimeChart) fivetimeChart.destroy();
+            fivetimeChart = new Chart(fivetimeCtx, {
+                type: 'line',
+                data: {
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            reverse: true,
+                            min: 15,
+                            max: 45,
+                            title: {
+                                display: true,
+                                text: 'Time (minutes)',
+                                color: 'white'
+                            },
+                            ticks: {
+                                color: 'white',
+                                stepSize: 1,
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.2)'
+                            }
+                        },
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'week',
+                                displayFormats: {
+                                    week: 'M/d'
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Date',
+                                color: 'white'
+                            },
+                            min: new Date('2025-08-31').getTime(),
+                            max: new Date('2025-12-31').getTime(),
+                            ticks: {
+                                color: 'white'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.2)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- Copy link functionality ---
+        document.getElementById('copy-btn').addEventListener('click', () => {
+            // Construct the public URL using the provided __app_id
+            const url = `https://${appId}.web.app`;
+            navigator.clipboard.writeText(url).then(() => {
+                showModal("Link copied to clipboard!");
+            }).catch(err => {
+                // Fallback for browsers that don't support clipboard API
+                const textArea = document.createElement("textarea");
+                textArea.value = url;
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    showModal("Link copied to clipboard! (Fallback)");
+                } catch (e) {
+                    showModal("Failed to copy link.");
+                }
+                document.body.removeChild(textArea);
+            });
+        });
+
+        // Start the countdown when the page loads
+        window.onload = startCountdown;
+    </script>
+</body>
+</html>
