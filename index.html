@@ -169,22 +169,36 @@
     <!-- Firebase Scripts -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, query, where, writeBatch, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Set Firebase logging level to debug
         setLogLevel('Debug');
 
         // --- Firebase Initialization and Auth ---
-        // Global variables are provided by the Canvas environment. Use 'default' values if they're not defined.
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
+        // 🚨 IMPORTANT: REPLACE THIS ENTIRE BLOCK WITH YOUR ACTUAL FIREBASE CONFIGURATION
+        const firebaseConfig = {
+            apiKey: "AIzaSyBCVci2avzMf62xzjmm40n-ApTM9Z9KtZw",
+            authDomain: "hypergrowth-fitness.firebaseapp.com",
+            projectId: "hypergrowth-fitness",
+            storageBucket: "hypergrowth-fitness.firebasestorage.app",
+            messagingSenderId: "936814208631",
+            appId: "1:936814208631:web:a2cf14ad98c7bcf827c872"
+        };
+        const appId = firebaseConfig.appId;
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
+        
+        let currentUserId = '';
+        signInAnonymously(auth).then((userCredential) => {
+            currentUserId = userCredential.user.uid;
+            document.getElementById('user-id').textContent = currentUserId;
+            initializeAppWithUser();
+        }).catch((error) => {
+            console.error("Error signing in anonymously:", error);
+        });
         
         // Modal functions
         const messageModal = document.getElementById('message-modal');
@@ -272,37 +286,15 @@
             }, 200);
         });
         
-        // --- Authenticate and Initialize App ---
-        let currentUserId = '';
-        if (initialAuthToken) {
-            signInWithCustomToken(auth, initialAuthToken).then((userCredential) => {
-                currentUserId = userCredential.user.uid;
-                document.getElementById('user-id').textContent = currentUserId;
-                initializeAppWithUser();
-            }).catch((error) => {
-                console.error("Error signing in with custom token:", error);
-                signInAnonymously(auth).then((userCredential) => {
-                    currentUserId = userCredential.user.uid;
-                    document.getElementById('user-id').textContent = currentUserId;
-                    initializeAppWithUser();
-                });
-            });
-        } else {
-            signInAnonymously(auth).then((userCredential) => {
-                currentUserId = userCredential.user.uid;
-                document.getElementById('user-id').textContent = currentUserId;
-                initializeAppWithUser();
-            });
-        }
         
         async function initializeAppWithUser() {
             // Data will be stored in a 'public' collection so all authenticated users can see it.
-            const collectionPath = `/artifacts/${appId}/public/data/competition_users`;
+            const collectionPath = `/artifacts/${firebaseConfig.appId}/public/data/competition_users`;
             const usersCollection = collection(db, collectionPath);
             
             // Graph data collections
-            const deadliftHistoryPath = `/artifacts/${appId}/public/data/deadlift_history`;
-            const fivetimeHistoryPath = `/artifacts/${appId}/public/data/fivetime_history`;
+            const deadliftHistoryPath = `/artifacts/${firebaseConfig.appId}/public/data/deadlift_history`;
+            const fivetimeHistoryPath = `/artifacts/${firebaseConfig.appId}/public/data/fivetime_history`;
             const deadliftHistoryCollection = collection(db, deadliftHistoryPath);
             const fivetimeHistoryCollection = collection(db, fivetimeHistoryPath);
 
@@ -800,26 +792,7 @@
 
         // Start the countdown when the page loads
         window.onload = startCountdown;
-   // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyBCVci2avzMf62xzjmm40n-ApTM9Z9KtZw",
-  authDomain: "hypergrowth-fitness.firebaseapp.com",
-  projectId: "hypergrowth-fitness",
-  storageBucket: "hypergrowth-fitness.firebasestorage.app",
-  messagingSenderId: "936814208631",
-  appId: "1:936814208631:web:a2cf14ad98c7bcf827c872",
-  measurementId: "G-KSZ3FVTY4N"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app); </script>
+    </script>
 </body>
 </html>
+
